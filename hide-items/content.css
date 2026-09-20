@@ -1,0 +1,22 @@
+/* Elements removed during the current session (restored on Cancel). */
+[data-hdi-pending] { display: none !important; }
+
+/* Poof animation before an element is taken out of the layout. */
+[data-hdi-vanish] {
+  animation: hdi-vanish 0.2s ease forwards !important;
+  pointer-events: none !important;
+}
+@keyframes hdi-vanish {
+  to { opacity: 0; transform: scale(0.96); }
+}
+
+/* Selection mode: faintly outline every element that can be hidden. */
+html.hdi-active [data-hdi-candidate] {
+  outline: 1px dashed rgba(0, 122, 255, 0.25) !important;
+  outline-offset: -1px !important;
+}
+html.hdi-active, html.hdi-active * {
+  cursor: default !important;
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}
