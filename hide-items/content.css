@@ -20,3 +20,9 @@ html.hdi-active, html.hdi-active * {
   -webkit-user-select: none !important;
   user-select: none !important;
 }
+
+/* A hidden modal leaves the site's scroll lock behind. Undo it while the
+   modal it belongs to is present. */
+html.hdi-unlock, html.hdi-unlock body {
+  overflow: auto !important;
+}

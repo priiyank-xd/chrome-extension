@@ -1,20 +1,32 @@
 {
   "manifest_version": 3,
   "name": "Hide Distracting Items",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Hide distracting items on any webpage, just like Safari.",
-  "permissions": ["storage", "scripting"],
-  "host_permissions": ["<all_urls>"],
+  "permissions": [
+    "storage",
+    "scripting",
+    "contextMenus"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
   "background": {
     "service_worker": "background.js"
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"],
-      "css": ["content.css"],
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ],
       "run_at": "document_start",
-      "all_frames": false
+      "all_frames": true
     }
   ],
   "action": {
