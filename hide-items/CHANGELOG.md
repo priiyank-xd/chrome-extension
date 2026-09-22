@@ -3,6 +3,26 @@
 All notable changes to **Hide Distracting Items** are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.1.0] - 2026-09-22
+
+### Added
+- Smart selection for grids and lists. Hovering a product tile, a table row, a
+  feed post or a search result now selects the whole item rather than just its
+  picture, its title or its price.
+
+  The item is the LOWEST ancestor that has at least 3 structurally similar
+  siblings. Siblings match when they share at least half their class names -
+  or, when class names give no signal (alternating `odd`/`even` row classes
+  leave none), when they have the same child-tag structure AND comparable size.
+  Matching on width alone is not enough: in a vertical column every block child
+  has the same width, so that would make unrelated page sections look like a
+  repeating list.
+
+  Guards against over-reaching: at least 3 similar siblings, so a pair of boxes
+  is not a grid; nothing larger than 60% of the viewport is ever treated as one
+  item; the walk stops after 16 levels. Holding Option while hovering skips it,
+  along with modal expansion, to pick a single element.
+
 ## [2.0.0] - 2026-09-20
 
 ### Added

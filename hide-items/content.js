@@ -172,6 +172,94 @@
   }
 
   /* ------------------------------------------------------------------ *
+   * Repeating units (grid and list cards)
+   *
+   * In a product grid the picture, the title and the price are separate
+   * boxes, so picking by size alone lands on one piece of a card. A card is
+   * recognisable because several of its siblings look like it, while the
+   * grid holding them has no such siblings - so the card is the HIGHEST
+   * ancestor that still repeats.
+   * ------------------------------------------------------------------ */
+
+  function classOverlap(a, b) {
+    const ca = a.classList, cb = b.classList;
+    if (!ca.length && !cb.length) return null;   // no signal either way
+    let shared = 0;
+    for (const c of ca) if (cb.contains(c)) shared++;
+    return shared / (ca.length + cb.length - shared);
+  }
+
+  // Tag plus the tags of the first few children. Cheap, needs no layout, and
+  // it is what separates a real repeat from two unrelated blocks that happen
+  // to be the same width.
+  function childShape(el) {
+    let shape = el.tagName + '>';
+    let n = 0;
+    for (const child of el.children) {
+      shape += child.tagName + ',';
+      if (++n >= 8) break;
+    }
+    return shape;
+  }
+
+  // `box` is the caller's already-measured box for `a`, so a scan over many
+  // siblings measures each of them once and `a` not at all.
+  function isSimilar(a, b, box) {
+    if (a.tagName !== b.tagName) return false;
+
+    const overlap = classOverlap(a, b);
+    if (overlap !== null && overlap >= 0.5) return true;   // same component
+
+    // Otherwise demand the same child structure. Alternating state classes
+    // (odd/even, active) leave no class signal, but structure still matches.
+    if (childShape(a) !== childShape(b)) return false;
+
+    // Size last: it is the only test that costs layout. Width alone means
+    // nothing in a vertical column, where every block child matches.
+    const other = boxOf(b, 0);
+    const w = Math.max(box.width, other.width);
+    if (w < 1) return false;
+    if (Math.abs(box.width - other.width) / w > 0.15) return false;
+
+    const h = Math.max(box.height, other.height);
+    return h < 1 || Math.abs(box.height - other.height) / h <= 0.6;
+  }
+
+  const REPEAT_MIN = 3;       // a pair isn't a grid
+  const REPEAT_MAX_VP = 0.6;  // never treat something this big as one item
+  const REPEAT_MAX_DEPTH = 16;
+
+  function repeats(el, box) {
+    const parent = el.parentElement;
+    if (!parent) return false;
+    let n = 1, scanned = 0;
+    for (const sib of parent.children) {
+      if (scanned++ > 40) break;
+      if (sib === el) continue;
+      if (isSimilar(el, sib, box) && ++n >= REPEAT_MIN) return true;
+    }
+    return false;
+  }
+
+  // The LOWEST repeating ancestor is the item. Taking the highest instead
+  // climbs straight past the card to whatever equal-width page section
+  // happens to sit above it.
+  function repeatingUnit(el) {
+    const vpArea = window.innerWidth * window.innerHeight;
+    let node = el;
+    let depth = 0;
+
+    while (node && node.parentElement && node !== document.body &&
+           depth++ < REPEAT_MAX_DEPTH) {
+      const box = boxOf(node, 0);
+      if (box.width * box.height > vpArea * REPEAT_MAX_VP) break;
+      if (repeats(node, box)) return node;
+      node = node.parentElement;
+    }
+    return null;
+  }
+
+  /* ------------------------------------------------------------------ *
    * Session state
    * ------------------------------------------------------------------ */
 
@@ -482,7 +570,8 @@
 
   /* ---------------------------- targeting --------------------------- */
 
-  // `precise` (Option held) skips modal expansion so a single part can be picked.
+  // `precise` (Option held) skips modal and repeating-unit expansion so a
+  // single part can be picked.
   function resolveFrom(el, precise) {
     if (!el || el === document.body) return [];
 
@@ -498,6 +587,9 @@
     if (!precise) {
       const modal = modalTargets(el);
       if (modal) { modal.isModal = true; return modal; }
+
+      const unit = repeatingUnit(el);
+      if (unit) return [unit];
     }
     return [el];
   }
@@ -684,7 +776,9 @@
     }
 
     const next = pickTargets(e.clientX, e.clientY, e.altKey);
-    if (sameTargets(next, targets) && Boolean(next.isModal) === Boolean(targets.isModal)) return;
+    if (sameTargets(next, targets) &&
+        Boolean(next.isModal) === Boolean(targets.isModal) &&
+        next.frame === targets.frame) return;
     targets = next;
     drawTarget();
   }

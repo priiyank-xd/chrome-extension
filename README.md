@@ -7,7 +7,7 @@ independently versioned extension.
 
 | Extension | Folder | Version | What it does |
 |---|---|---|---|
-| Hide Distracting Items | [`hide-items/`](hide-items/) | 2.0.0 | Hide any element on a page, like Safari's "Hide Distracting Item". Handles modals, iframes, and per-page or per-site rules. |
+| Hide Distracting Items | [`hide-items/`](hide-items/) | 2.1.0 | Hide any element on a page, like Safari's "Hide Distracting Item". Handles modals, iframes, and per-page or per-site rules. |
 
 ## Install (unpacked)
 
